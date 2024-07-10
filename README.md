@@ -6,7 +6,9 @@
 
 ## Setup
 
-Copy-paste to www folder and include it as a resource in any dashboard.
+Manual installation is required.
+
+Copy-paste the bars.js to www folder and include it as a resource in your dashboard (`local/bars.js`).
 
 ## Config
 
