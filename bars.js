@@ -53,41 +53,42 @@ class FsgBars extends HTMLElement {
 				}
 			}
 
-			// tap classes
-			var tapClasses = '';
-			if (this._tap_action != null || this._hold_action != null || this._double_tap_action != null) {
-				tapClasses = 'style="cursor:pointer"'
-			}
-
-			// init bars and containers
+			// init bars and this.cards
 			var barsStr = '';
 			for (var i = 0; i < this._bars; i++) {
 				barsStr += `<div class="bar" style="flex:0px 1 0; border-radius:5px; margin:0 ${this._bars_margin}px; height:${this._bars_height}px"></div>`;
 			}
-			this.innerHTML = `
-				<ha-card ${tapClasses}>
-					<div class="card-content">
-						<div class="head">
-							<div class="primary-info" style="font-size:1.4em; padding-bottom:8px;"></div>
-							<div class="secondary-info" style="padding-bottom:8px"></div>
-						</div>
-						<div class="bars" style="display:flex; flex-direction:row; flex-wrap:nowrap; width:100%">${barsStr}</div>
+			this.card = document.createElement("ha-card");
+			this.card.innerHTML = `
+				<div class="card-content">
+					<div class="head">
+						<div class="primary-info" style="font-size:1.4em; padding-bottom:8px;"></div>
+						<div class="secondary-info" style="padding-bottom:8px"></div>
 					</div>
-				</ha-card>
+					<div class="bars" style="display:flex; flex-direction:row; flex-wrap:nowrap; width:100%">${barsStr}</div>
+				</div>
 				`;
-			this.primaryInfo = this.querySelector("div.primary-info");
-			this.secondaryInfo = this.querySelector("div.secondary-info");
-			this.barsCnt = this.querySelector("div.bars");
-			this.bars = this.querySelectorAll("div.bar");
+			this.primaryInfo = this.card.querySelector("div.primary-info");
+			this.secondaryInfo = this.card.querySelector("div.secondary-info");
+			this.barsCnt = this.card.querySelector("div.bars");
+			this.bars = this.card.querySelectorAll("div.bar");
+			
+			this.attachShadow({ mode: "open" });
+			this.shadowRoot.append(this.card);
+
+			// tap classes
+			var tapClasses = '';
+			if (this._tap_action != null || this._hold_action != null || this._double_tap_action != null) {
+				this.card.style.cursor = 'pointer';
+			}
 
 			// ACTIONS
-			const container = this.querySelector("ha-card");
 			let pressTimer;
 			let clickTimer;
 			let isLongPress = false;
 			let isDoubleClick = false;
 
-			container.addEventListener('mousedown', (e) => {
+			this.card.addEventListener('mousedown', (e) => {
 				isLongPress = false;
 				isDoubleClick = false;
 				pressTimer = setTimeout(() => {
@@ -96,7 +97,7 @@ class FsgBars extends HTMLElement {
 				}, 300);
 			});
 
-			container.addEventListener('mouseup', (e) => {
+			this.card.addEventListener('mouseup', (e) => {
 				clearTimeout(pressTimer);
 				if (!isLongPress && !isDoubleClick) {
 					clickTimer = setTimeout(() => {
@@ -107,11 +108,11 @@ class FsgBars extends HTMLElement {
 				}
 			});
 
-			container.addEventListener('mouseleave', (e) => {
+			this.card.addEventListener('mouseleave', (e) => {
 				clearTimeout(pressTimer);
 			});
 
-			container.addEventListener('dblclick', (e) => {
+			this.card.addEventListener('dblclick', (e) => {
 				clearTimeout(clickTimer);
 				isDoubleClick = true;
 				this._on_double_tap_action();
@@ -376,7 +377,7 @@ class FsgBars extends HTMLElement {
 			if (config[acts[act]]) {
 				this[`_${acts[act]}`] = config[acts[act]];
 				var action = this[`_${acts[act]}`];
-				var action_readable = acts[act].replaceAll('_', ' ');
+				var action_readable = acts[act].replace(/_/g, ' ');
 				switch (action.action) {
 					case 'call-service':
 						if (typeof action.service == 'undefined') {
